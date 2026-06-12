@@ -1,0 +1,1633 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>文明年代轴 Demo</title>
+  <style>
+    :root {
+      --stage-w: 3840px;
+      --stage-h: 2161px;
+      --ink: #07516a;
+      --ink-deep: #00465b;
+      --gold: #b78a42;
+      --paper: rgba(250, 250, 244, .66);
+      --paper-strong: rgba(252, 250, 242, .82);
+      --teal: #007b86;
+      --timeline-center-y: 193px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(238, 250, 252, .08), rgba(255, 247, 226, .12)),
+        url("https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728824294604800.png") center / cover no-repeat,
+        #d9eef2;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      color: var(--ink);
+      user-select: none;
+    }
+
+    body {
+      position: relative;
+    }
+
+    #stage-shell {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--stage-w);
+      height: var(--stage-h);
+      transform-origin: center center;
+    }
+
+    #stage {
+      position: absolute;
+      inset: 0;
+      width: var(--stage-w);
+      height: var(--stage-h);
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(238, 250, 252, .08), rgba(255, 247, 226, .12)),
+        url("https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728824294604800.png") center / cover no-repeat;
+    }
+
+    .module-panel {
+      position: absolute;
+      left: 122px;
+      top: 132px;
+      width: 3598px;
+      height: 1918px;
+      border-radius: 62px;
+      background:
+        radial-gradient(circle at 82% 12%, rgba(255, 244, 218, .46), transparent 30%),
+        linear-gradient(90deg, rgba(255, 255, 255, .74), rgba(252, 249, 239, .54) 55%, rgba(255, 255, 255, .65));
+      border: 2px solid rgba(255, 255, 255, .92);
+      box-shadow:
+        inset 0 0 55px rgba(255, 255, 255, .72),
+        inset 0 0 0 1px rgba(179, 211, 215, .42),
+        0 18px 55px rgba(23, 79, 91, .22);
+      backdrop-filter: blur(2px);
+    }
+
+    .module-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 10% 7%, rgba(132, 185, 190, .13), transparent 17%),
+        radial-gradient(circle at 78% 6%, rgba(237, 205, 147, .18), transparent 18%),
+        linear-gradient(180deg, rgba(255, 255, 255, .38), transparent 25%, rgba(200, 235, 238, .16));
+      pointer-events: none;
+    }
+
+    .title-logo {
+      position: absolute;
+      left: 286px;
+      top: 286px;
+      width: 160px;
+      height: auto;
+      filter: drop-shadow(0 8px 8px rgba(67, 78, 70, .34));
+    }
+
+    .title-text {
+      position: absolute;
+      left: 468px;
+      top: 214px;
+      width: 765px;
+      height: 165px;
+      object-fit: contain;
+      filter:
+        saturate(1.12)
+        contrast(1.08)
+        drop-shadow(0 7px 4px rgba(255, 255, 255, .72));
+    }
+
+    .subtitle-text {
+      position: absolute;
+      left: 486px;
+      top: 420px;
+      margin: 0;
+      color: #5a6266;
+      font-family: "FangSong", "仿宋", "STFangsong", "KaiTi", serif;
+      font-size: 41px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, .82);
+    }
+
+    .scroll-wrap {
+      position: absolute;
+      left: 176px;
+      top: 476px;
+      width: 3490px;
+      height: 546px;
+    }
+
+    .scroll-frame,
+    .scroll-left,
+    .scroll-center,
+    .scroll-right {
+      position: absolute;
+      top: 0;
+      height: 546px;
+      pointer-events: none;
+    }
+
+    .scroll-frame {
+      left: 0;
+      width: 3490px;
+      filter:
+        drop-shadow(0 20px 10px rgba(54, 49, 34, .24))
+        drop-shadow(0 36px 28px rgba(48, 51, 41, .28));
+    }
+
+    .scroll-left {
+      left: 0;
+      width: 230px;
+      object-fit: contain;
+    }
+
+    .scroll-center {
+      left: 230px;
+      right: 230px;
+      top: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 249, 236, .05), rgba(255, 249, 236, .05)),
+        url("https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728924811100160.png") center top / 100% 546px no-repeat;
+    }
+
+    .scroll-right {
+      right: 0;
+      width: 230px;
+      object-fit: contain;
+    }
+
+    .timeline-viewport {
+      position: absolute;
+      left: 325px;
+      top: 105px;
+      width: 2855px;
+      height: 246px;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .timeline-viewport:active {
+      cursor: grabbing;
+    }
+
+    .era-track {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      transition: transform .52s cubic-bezier(.2, .76, .23, 1);
+      will-change: transform;
+    }
+
+    .era-track.dragging {
+      transition: none;
+    }
+
+    .timeline-line {
+      position: absolute;
+      left: 82px;
+      top: calc(var(--timeline-center-y) - 7px);
+      width: calc(100% - 164px);
+      height: 14px;
+      background: transparent;
+      filter: drop-shadow(0 1px 1px rgba(91, 62, 29, .18));
+      pointer-events: none;
+    }
+
+    .timeline-line::before,
+    .timeline-line::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+    }
+
+    .timeline-line::before {
+      top: 6px;
+      height: 2px;
+      background: repeating-linear-gradient(90deg,
+        rgba(149, 103, 45, .72) 0 47px,
+        rgba(149, 103, 45, .44) 62px,
+        rgba(149, 103, 45, .12) 76px,
+        transparent 88px 100px,
+        rgba(149, 103, 45, .12) 112px,
+        rgba(149, 103, 45, .44) 126px,
+        rgba(149, 103, 45, .72) 144px 330px);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+      box-shadow:
+        0 -1px 0 rgba(255, 243, 196, .32),
+        0 1px 0 rgba(109, 69, 25, .2);
+    }
+
+    .timeline-line::after {
+      top: 2px;
+      height: 10px;
+      background:
+        radial-gradient(ellipse at 83px 50%,
+          rgba(255, 249, 232, .72) 0 12px,
+          rgba(255, 249, 232, .38) 26px,
+          transparent 64px) left center / 330px 10px repeat-x;
+      opacity: .62;
+    }
+
+    .era-item {
+      position: absolute;
+      top: -4px;
+      width: 330px;
+      height: 220px;
+      text-align: center;
+      color: #153d48;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      cursor: pointer;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .era-item:hover {
+      transform: translateY(-4px);
+    }
+
+    .era-item .name {
+      display: block;
+      min-height: 80px;
+      padding: 0 4px;
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.08;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+      white-space: normal;
+    }
+
+    .era-item.long-name .name {
+      font-size: 42px;
+      line-height: 1.08;
+    }
+
+    .era-item.extra-long-name .name {
+      font-size: 36px;
+      line-height: 1.08;
+    }
+
+    .era-item .time {
+      display: block;
+      margin-top: 4px;
+      font-size: 29px;
+      line-height: 1.1;
+      color: #42515a;
+      font-family: "Microsoft YaHei", sans-serif;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .85);
+    }
+
+    .era-item .dot {
+      position: absolute;
+      left: 50%;
+      top: calc(var(--timeline-center-y) - 8px);
+      width: 24px;
+      height: 24px;
+      margin-left: -12px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 30%, #fff8d9 0 15%, #d6aa5c 31%, #9d6b2a 66%, #6d4519 100%);
+      border: 1px solid rgba(255, 240, 190, .82);
+      box-shadow:
+        inset 0 0 0 2px rgba(116, 75, 28, .18),
+        0 0 0 5px rgba(215, 172, 91, .18),
+        0 0 12px rgba(255, 240, 174, .34),
+        0 5px 9px rgba(77, 56, 30, .28);
+    }
+
+    .era-item.is-active {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .badge-layer {
+      position: absolute;
+      left: 325px;
+      top: 0;
+      width: 2855px;
+      height: 546px;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .active-era {
+      position: absolute;
+      left: 0;
+      top: 20px;
+      width: 252px;
+      height: 513px;
+      transition:
+        transform .52s cubic-bezier(.2, .76, .23, 1),
+        opacity .24s ease;
+      pointer-events: none;
+      filter:
+        drop-shadow(0 18px 17px rgba(50, 51, 37, .34))
+        drop-shadow(0 0 12px rgba(222, 191, 118, .34));
+      will-change: transform;
+      opacity: 1;
+    }
+
+    .active-era.dragging {
+      transition: none;
+    }
+
+    .active-era img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      animation: badgeGlow 4.2s ease-in-out infinite;
+    }
+
+    .active-era .badge-name,
+    .active-era .badge-time {
+      position: absolute;
+      left: 16px;
+      width: 220px;
+      text-align: center;
+      color: #fff8dc;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      text-shadow: 0 3px 5px rgba(0, 45, 50, .45);
+    }
+
+    .active-era .badge-name {
+      top: 102px;
+      font-size: 60px;
+      font-weight: 700;
+      line-height: 1.04;
+    }
+
+    .active-era.long-name .badge-name {
+      top: 98px;
+      font-size: 48px;
+      line-height: 1.16;
+    }
+
+    .active-era.extra-long-name .badge-name {
+      top: 96px;
+      font-size: 40px;
+      line-height: 1.2;
+    }
+
+    .active-era .badge-time {
+      top: 218px;
+      font-size: 31px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .period-card {
+      position: absolute;
+      left: 244px;
+      top: 1052px;
+      width: 1058px;
+      height: 926px;
+      overflow: hidden;
+      border-radius: 34px;
+      background:
+        linear-gradient(90deg, rgba(238, 250, 252, .78), rgba(255, 255, 248, .32) 58%, rgba(239, 247, 241, .12)),
+        url("https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728824294604800.png") right bottom / cover no-repeat;
+      border: 1px solid rgba(176, 211, 215, .92);
+      box-shadow:
+        inset 0 0 35px rgba(255, 255, 255, .72),
+        0 16px 25px rgba(50, 75, 78, .22);
+    }
+
+    .period-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 7%, rgba(255, 255, 255, .45), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(120, 184, 193, .1));
+      pointer-events: none;
+    }
+
+    .period-content {
+      position: absolute;
+      z-index: 1;
+      left: 84px;
+      top: 56px;
+      width: 890px;
+      height: 830px;
+    }
+
+    .period-title-wrap {
+      position: relative;
+      width: 790px;
+      height: 250px;
+    }
+
+    .period-title-cutout {
+      position: absolute;
+      left: -74px;
+      top: -42px;
+      width: 792px;
+      height: auto;
+      display: none;
+      object-fit: contain;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 9px rgba(42, 68, 68, .16));
+    }
+
+    .period-title-wrap.uses-cutout .period-title-cutout {
+      display: block;
+    }
+
+    .period-title-wrap.uses-cutout .period-name,
+    .period-title-wrap.uses-cutout .period-time {
+      visibility: hidden;
+    }
+
+    .period-name {
+      position: absolute;
+      left: 0;
+      top: 30px;
+      margin: 0;
+      height: auto;
+      color: var(--ink-deep);
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: var(--period-title-size, 112px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-shadow:
+        0 3px 0 rgba(255, 255, 255, .7),
+        0 10px 9px rgba(42, 68, 68, .18);
+    }
+
+    .period-time {
+      position: absolute;
+      left: 0;
+      top: 170px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 620px;
+      margin: 0;
+      color: #74410d;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: 41px;
+      font-weight: 700;
+      white-space: nowrap;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, .75);
+    }
+
+    .period-time::before,
+    .period-time::after {
+      content: "";
+      width: 66px;
+      height: 18px;
+      background:
+        radial-gradient(circle, #b98b42 3px, transparent 4px) center / 18px 18px no-repeat,
+        linear-gradient(90deg, transparent, rgba(179, 128, 58, .8), transparent) center / 66px 1px no-repeat;
+    }
+
+    .period-headline {
+      margin: 10px 0 0;
+      color: var(--ink);
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: 48px;
+      line-height: 1.2;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, .75);
+    }
+
+    .period-desc {
+      margin: 10px 0 0;
+      width: 890px;
+      color: #253740;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: 34px;
+      line-height: 1.55;
+      font-weight: 700;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .9);
+    }
+
+    .detail-button {
+      position: absolute;
+      left: 18px;
+      bottom: 130px;
+      z-index: 2;
+      width: 500px;
+      height: auto;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      filter: drop-shadow(0 10px 8px rgba(35, 66, 67, .35));
+      transform-origin: center;
+      transition: transform .18s ease, filter .18s ease;
+    }
+
+    .detail-button img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      pointer-events: none;
+      display: block;
+    }
+
+    .detail-button:hover {
+      transform: translateY(-4px);
+      filter:
+        drop-shadow(0 13px 10px rgba(35, 66, 67, .35))
+        drop-shadow(0 0 12px rgba(240, 210, 128, .45));
+    }
+
+    .detail-button:active,
+    .detail-button.clicked {
+      transform: translateY(1px) scale(.985);
+    }
+
+    .detail-button .spark {
+      position: absolute;
+      right: 48px;
+      bottom: 19px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 243, 196, .9);
+      box-shadow: 0 0 18px rgba(255, 243, 196, .88);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .detail-button.clicked .spark {
+      animation: ringPulse .62s ease-out;
+    }
+
+    .relic-board {
+      position: absolute;
+      left: 1328px;
+      top: 1052px;
+      width: 2282px;
+      height: 846px;
+      border-radius: 36px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(246, 241, 227, .58)),
+        rgba(249, 248, 240, .50);
+      border: 1px solid rgba(188, 204, 199, .85);
+      box-shadow:
+        inset 0 0 30px rgba(255, 255, 255, .7),
+        0 14px 24px rgba(48, 70, 69, .22);
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .relic-board.dragging {
+      cursor: grabbing;
+    }
+
+    .relic-strip {
+      position: absolute;
+      left: 34px;
+      top: 28px;
+      display: flex;
+      gap: 29px;
+      width: max-content;
+      height: 790px;
+      opacity: 1;
+      transform: translateX(0);
+      transition: transform .46s cubic-bezier(.18, .78, .22, 1);
+      will-change: transform, opacity;
+      pointer-events: auto;
+    }
+
+    .relic-strip.dragging {
+      transition: none;
+    }
+
+    .relic-card {
+      position: relative;
+      flex: 0 0 418px;
+      overflow: hidden;
+      width: 418px;
+      height: 790px;
+      padding: 0;
+      border-radius: 18px;
+      background: rgba(255, 253, 246, .82);
+      border: 1px solid rgba(207, 211, 200, .9);
+      cursor: pointer;
+      font: inherit;
+      appearance: none;
+      user-select: none;
+      box-shadow:
+        inset 0 0 18px rgba(255, 255, 255, .65),
+        0 8px 14px rgba(46, 63, 62, .13);
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+
+    .relic-card::after {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      border-radius: inherit;
+      opacity: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at center,
+          rgba(255, 247, 204, .72) 0 18%,
+          rgba(226, 178, 89, .32) 42%,
+          rgba(44, 169, 178, .18) 60%,
+          transparent 74%);
+      box-shadow:
+        inset 0 0 22px rgba(255, 244, 196, .42),
+        0 0 0 0 rgba(255, 238, 178, .62),
+        0 0 26px rgba(226, 178, 89, .24);
+      transform: scale(.94);
+      transform-origin: center center;
+    }
+
+    .relic-card:hover,
+    .relic-card:focus-visible {
+      outline: 0;
+      transform: translateY(-10px);
+      border-color: rgba(197, 143, 61, .68);
+      box-shadow:
+        inset 0 0 18px rgba(255, 255, 255, .75),
+        0 18px 26px rgba(46, 63, 62, .22),
+        0 0 0 4px rgba(220, 181, 105, .2);
+    }
+
+    .relic-card:active,
+    .relic-card.clicked {
+      transform: translateY(-3px) scale(.985);
+      border-color: rgba(214, 170, 92, .92);
+    }
+
+    .relic-card.clicked::after {
+      animation: relicCardHalo .68s cubic-bezier(.18, .72, .18, 1);
+    }
+
+    .relic-card .image-box {
+      width: 100%;
+      height: 481px;
+      overflow: hidden;
+      border-radius: 17px 17px 0 0;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .68), transparent 56%),
+        #dbeff0;
+    }
+
+    .relic-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .relic-card.fit-demo-relic img {
+      transform: scale(1.075);
+    }
+
+    .relic-card.fit-bronze-jue img {
+      object-position: 50% 50%;
+    }
+
+    .relic-card.fit-jade-yue img {
+      object-position: 48% 50%;
+    }
+
+    .relic-card.fit-pottery-jar img {
+      object-position: 49% 50%;
+    }
+
+    .relic-info {
+      height: 309px;
+      padding: 32px 26px 28px;
+      text-align: center;
+      background:
+        linear-gradient(180deg, rgba(255, 252, 244, .9), rgba(247, 243, 231, .95)),
+        radial-gradient(circle at center top, rgba(238, 219, 176, .22), transparent 55%);
+    }
+
+    .relic-name {
+      margin: 0;
+      min-height: 66px;
+      color: #004e62;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: 46px;
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: 0;
+      white-space: normal;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, .86), 0 4px 7px rgba(20, 72, 74, .12);
+    }
+
+    .relic-type {
+      position: relative;
+      display: inline-block;
+      margin-top: 12px;
+      padding: 0 42px;
+      color: #66767b;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .relic-type::before,
+    .relic-type::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 31px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(180, 128, 55, .68));
+    }
+
+    .relic-type::before {
+      left: 0;
+    }
+
+    .relic-type::after {
+      right: 0;
+      transform: scaleX(-1);
+    }
+
+    .relic-level {
+      position: absolute;
+      left: 70px;
+      bottom: 44px;
+      width: 278px;
+      height: 62px;
+      display: grid;
+      place-items: center;
+      color: #6f471d;
+      font-family: "KaiTi", "STKaiti", "FangSong", serif;
+      font-size: 31px;
+      font-weight: 800;
+      background:
+        radial-gradient(circle at 16px 50%, rgba(176, 125, 58, .62) 2px, transparent 4px),
+        radial-gradient(circle at calc(100% - 16px) 50%, rgba(176, 125, 58, .62) 2px, transparent 4px),
+        linear-gradient(180deg, rgba(255, 253, 247, .88), rgba(244, 234, 213, .84));
+      border: 1px solid rgba(173, 124, 54, .52);
+      border-radius: 14px;
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, .48),
+        inset 0 -4px 10px rgba(190, 143, 70, .12),
+        0 4px 8px rgba(79, 58, 31, .10);
+    }
+
+    .pager {
+      position: absolute;
+      left: 1912px;
+      top: 1942px;
+      width: 1010px;
+      height: 92px;
+      background: url("https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728830074355712.png") center / contain no-repeat;
+    }
+
+    .pager::before,
+    .pager::after {
+      content: none;
+    }
+
+    .pager-dots {
+      position: absolute;
+      left: calc(50% + 36px);
+      top: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transform: translateX(-40%);
+    }
+
+    .page-dot {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      padding: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 50%, #efe7d6 0 12px, transparent 13px);
+      box-shadow: none;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .page-dot::before {
+      content: "";
+      display: block;
+      width: 26px;
+      height: 26px;
+      margin: 5px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fffaf0, #d9d0bb 72%);
+      box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, .75),
+        0 7px 7px rgba(44, 47, 36, .24);
+    }
+
+    .page-dot:hover {
+      transform: scale(1.18);
+    }
+
+    .page-dot.active {
+      position: relative;
+      background: transparent;
+    }
+
+    .page-dot.active::before {
+      width: 34px;
+      height: 34px;
+      margin: 1px;
+      background: radial-gradient(circle at 36% 28%, #26a5ad, #006f7b 76%);
+      box-shadow:
+        0 0 0 3px rgba(255, 255, 255, .7),
+        0 0 0 9px rgba(190, 146, 73, .22),
+        0 4px 8px rgba(30, 67, 68, .28);
+    }
+
+    .pager-medal {
+      display: none;
+    }
+
+    @keyframes badgeGlow {
+      0%,
+      100% {
+        filter: brightness(1);
+      }
+      50% {
+        filter: brightness(1.07);
+      }
+    }
+
+    @keyframes ringPulse {
+      0% {
+        opacity: .98;
+        transform: scale(.18);
+        border-color: rgba(255, 243, 196, .98);
+        box-shadow:
+          0 0 12px rgba(255, 243, 196, .92),
+          0 0 0 0 rgba(255, 243, 196, .42);
+      }
+      55% {
+        opacity: .7;
+        border-color: rgba(255, 243, 196, .72);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(5.6);
+        border-color: rgba(255, 243, 196, 0);
+        box-shadow:
+          0 0 28px rgba(255, 243, 196, 0),
+          0 0 0 18px rgba(255, 243, 196, 0);
+      }
+    }
+
+    @keyframes relicCardHalo {
+      0% {
+        opacity: 0;
+        transform: scale(.94);
+        box-shadow:
+          inset 0 0 18px rgba(255, 244, 196, .24),
+          0 0 0 0 rgba(255, 238, 178, .56),
+          0 0 0 rgba(44, 169, 178, 0);
+      }
+      24% {
+        opacity: .72;
+        transform: scale(1);
+        box-shadow:
+          inset 0 0 26px rgba(255, 244, 196, .52),
+          0 0 0 5px rgba(255, 238, 178, .5),
+          0 0 22px rgba(44, 169, 178, .2);
+      }
+      64% {
+        opacity: .38;
+        transform: scale(1.055);
+        box-shadow:
+          inset 0 0 18px rgba(255, 244, 196, .22),
+          0 0 0 18px rgba(255, 238, 178, .20),
+          0 0 34px rgba(44, 169, 178, .13);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.095);
+        box-shadow:
+          inset 0 0 8px rgba(255, 244, 196, 0),
+          0 0 0 30px rgba(255, 238, 178, 0),
+          0 0 42px rgba(44, 169, 178, 0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage-shell">
+    <section id="stage" aria-label="文明年代轴模块演示">
+      <div class="module-panel"></div>
+
+      <img class="title-logo" src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728937024913408.png" alt="">
+      <img class="title-text" src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728942544617472.png" alt="文明年代轴">
+      <p class="subtitle-text">穿越时光长河，探索中华文明的起源、演进与风华</p>
+
+      <div class="scroll-wrap" aria-label="年代轴">
+        <div class="scroll-frame" aria-hidden="true">
+          <img class="scroll-left" src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728929169940480.png" alt="">
+          <div class="scroll-center"></div>
+          <img class="scroll-right" src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728932261142528.png" alt="">
+        </div>
+        <div class="badge-layer" aria-hidden="true">
+          <div class="active-era" id="activeEra">
+            <img src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728844125274112.png" alt="">
+            <div class="badge-name" id="badgeName"></div>
+            <div class="badge-time" id="badgeTime"></div>
+          </div>
+        </div>
+        <div class="timeline-viewport" id="timelineViewport">
+          <div class="era-track" id="eraTrack">
+            <div class="timeline-line"></div>
+          </div>
+        </div>
+      </div>
+
+      <article class="period-card" aria-label="年代介绍">
+        <div class="period-content">
+          <div class="period-title-wrap" id="periodTitleWrap">
+            <img class="period-title-cutout" id="periodTitleCutout" src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728837276934144.png" alt="">
+            <h2 class="period-name" id="periodName"></h2>
+            <div class="period-time" id="periodTime"></div>
+          </div>
+          <h3 class="period-headline" id="periodHeadline"></h3>
+          <p class="period-desc" id="periodDesc"></p>
+          <button class="detail-button" id="detailButton" type="button" aria-label="查看该时期文物">
+            <img src="https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728832813236224.png" alt="">
+            <span class="spark"></span>
+          </button>
+        </div>
+      </article>
+
+      <section class="relic-board" aria-label="年代文物展示">
+        <div class="relic-strip" id="relicStrip"></div>
+      </section>
+
+      <nav class="pager" id="pager" aria-label="推荐文物分页"></nav>
+    </section>
+  </div>
+
+  <script>
+    const ASSET = "";
+    const ITEM_W = 330;
+    const BADGE_W = 252;
+    const TIMELINE_X = 325;
+    const VIEWPORT_W = 2855;
+    const EDGE_FADE_INSET = 120;
+    const BADGE_FADE_ZONE = 160;
+    const DRAG_THRESHOLD = 8;
+    const DEFAULT_INDEX = 2;
+    const PAGE_SIZE = 5;
+    const TARGET_RELIC_COUNT = 25;
+    const RELIC_CARD_W = 418;
+    const RELIC_GAP = 29;
+    const RELIC_PAGE_STEP = PAGE_SIZE * (RELIC_CARD_W + RELIC_GAP);
+
+    let stageScale = 1;
+    let activeIndex = DEFAULT_INDEX;
+    let currentPage = 0;
+    let offset = -390;
+    let isDragging = false;
+    let hasDragged = false;
+    let suppressClick = false;
+    let dragStartX = 0;
+    let dragStartOffset = 0;
+    let dragLastX = 0;
+    let dragLastTime = 0;
+    let dragVelocity = 0;
+    let momentumFrame = 0;
+    let pointerDownEraIndex = null;
+    let pageDirection = 1;
+    let relicRenderTimer = 0;
+    let relicPointerDown = false;
+    let relicHasDragged = false;
+    let relicStartX = 0;
+    let relicLastX = 0;
+    let relicLastTime = 0;
+    let relicVelocity = 0;
+    let relicDragDelta = 0;
+    let suppressRelicClick = false;
+
+    const baseRelics = [
+      { name: "青瓷执壶", category: "瓷器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728860000714752.jpg" },
+      { name: "玉佩饰", category: "玉器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728863759769600.jpg" },
+      { name: "铜镜", category: "铜器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728867127795712.jpg" },
+      { name: "玉璧", category: "玉器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728870365798400.jpg" },
+      { name: "佛教造像", category: "石刻", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728873696075776.jpg" },
+      { name: "乳钉纹铜爵", category: "青铜器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728848294412288.png" },
+      { name: "玉斧", category: "玉器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728851814391808.png" },
+      { name: "灰陶砂罐", category: "陶器", level: "一般文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728856997593088.png" },
+      { name: "龙首三足器", category: "青铜器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728877209944064.jpg" },
+      { name: "白釉小瓶", category: "瓷器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728880846405632.jpg" },
+      { name: "青白瓷小瓶", category: "瓷器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728884814217216.jpg" },
+      { name: "白地黑彩碗", category: "瓷器", level: "三级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728888476803072.jpg" },
+      { name: "青铜酒器", category: "青铜器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728891534450688.jpg" },
+      { name: "青铜香炉", category: "金属器", level: "一般文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728894940225536.jpg" },
+      { name: "兽耳铜炉", category: "金属器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728898307293184.jpg" },
+      { name: "象首流铜壶", category: "青铜器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728901650153472.jpg" },
+      { name: "青铜食器", category: "青铜器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728906444242944.jpg" },
+      { name: "青釉小瓶", category: "瓷器", level: "二级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728910542077952.jpg" },
+      { name: "瓷质小瓶", category: "瓷器", level: "三级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728914015920128.jpg" },
+      { name: "石雕造像", category: "石刻", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728917727879168.jpg" },
+      { name: "谷物盛器", category: "青铜器", level: "一级文物", image: "https://img.shuziwenbo.cn/7/20260611/8ngM7VC/301728921100099584.jpg" }
+    ];
+
+    const eraSeed = [
+      ["砾石刮削器", "石器", "一般文物"],
+      ["彩陶盆", "陶器", "三级文物"],
+      ["绿松石龙形器", "玉石器", "一级文物"],
+      ["司母辛铜方鼎", "青铜器", "一级文物"],
+      ["兽面纹铜觥", "青铜器", "一级文物"],
+      ["秦半两钱", "钱币", "二级文物"],
+      ["长信宫灯", "青铜器", "一级文物"],
+      ["青瓷羊形烛台", "瓷器", "二级文物"],
+      ["越窑青瓷盘口壶", "瓷器", "三级文物"],
+      ["莲花纹瓦当", "建筑构件", "一般文物"],
+      ["石刻佛造像", "石刻", "一级文物"],
+      ["白釉龙柄双联瓶", "瓷器", "一级文物"],
+      ["唐三彩骆驼", "陶器", "一级文物"],
+      ["秘色瓷净瓶", "瓷器", "二级文物"],
+      ["汝窑天青釉盘", "瓷器", "一级文物"],
+      ["鎏金银冠饰", "金银器", "一级文物"],
+      ["青花云龙纹罐", "瓷器", "一级文物"],
+      ["宣德青花缠枝莲盘", "瓷器", "一级文物"],
+      ["珐琅彩花鸟纹瓶", "瓷器", "一级文物"],
+      ["民国粉彩人物瓶", "瓷器", "二级文物"],
+      ["共和国纪念章", "徽章", "一般文物"]
+    ];
+
+    const eras = [
+      ["旧石器时代", "约前300万年-前10000年", "文明曙光，石器初兴", ["先民以打制石器开拓生存空间，火的使用照亮漫长岁月。", "狩猎采集、洞穴居住与石片工具，记录早期智慧萌芽。", "旧石器遗存铺展出中华大地最早的人类活动图景。"]],
+      ["新石器时代", "约前10000年-前2070年", "聚落初成，礼器渐兴", ["磨制石器、陶器制作与农业聚落发展，推动稳定生活形成。", "彩陶、玉礼器和墓葬制度逐渐出现，文明起源脉络清晰。", "聚落之间的交流与分化，孕育出早期礼制和审美秩序。"]],
+      ["夏", "约前2070年-前1600年", "华夏肇始，文明曙基", ["阳和启蛰，万物以生；禹划九州，定山川之列。", "启建国邦，立社稷以安邦，铜器初萌，礼制肇兴。", "农桑兴起，文脉绵延，华夏文明由此肇基，泽被后世。"]],
+      ["商", "约前1600年-前1046年", "殷商礼乐，甲骨载史", ["青铜礼器体系成熟，王朝祭祀与邦国秩序愈加恢宏。", "甲骨文字记录征伐、占卜与天象，打开早期信史之门。", "城市、手工业和礼制互为支撑，构成雄浑的商代文明。"]],
+      ["周", "约前1046年-前256年", "礼乐成章，天下有序", ["宗法分封与礼乐制度深刻塑造中国古代政治文化。", "青铜铭文、车马制度与诸侯邦国，见证秩序的扩展。", "礼器与典章相互映照，奠定绵延千年的文明范式。"]],
+      ["秦", "前221年-前207年", "六合一统，制度开新", ["秦并天下，统一文字、度量衡与车轨，开创大一统格局。", "郡县制度与律令体系，奠定国家治理的基本框架。", "兵马俑、封泥与秦半两，共同见证帝国气象。"]],
+      ["汉", "前202年-220年", "汉风远播，丝路通达", ["两汉开拓丝绸之路，东西交流与边疆经营持续展开。", "画像石、漆器、玉衣与简牍承载开放雄浑的时代风貌。", "礼制、经学与日用器物交织，形成厚重的汉代文化。"]],
+      ["三国", "220年-280年", "鼎立风云，器用承变", ["魏蜀吴鼎足而立，政治格局分合之间延续汉制余绪。", "墓葬、陶俑、铜镜与青瓷，呈现区域文化的发展路径。", "战乱与迁徙推动工艺转变，也留下鲜明的时代印记。"]],
+      ["西晋", "266年-316年", "短祚承汉，风雅初现", ["西晋短暂统一，制度承续与文化流动在南北之间展开。", "青瓷、墓志与日用器物，映照魏晋风度的早期面貌。", "士人精神与礼俗变化，为后世审美转向埋下伏笔。"]],
+      ["东晋十六国", "317年-420年", "江左风流，北地交融", ["南北迁徙推动族群融合，江左文化与北方传统相互激荡。", "书法、佛教造像和青瓷工艺呈现新的审美格局。", "动荡时代中的器物遗存，见证多元文明的交汇。"]],
+      ["南北朝", "420年-589年", "南北互鉴，佛光万象", ["佛教艺术兴盛，石窟、造像碑与金铜佛像蔚为大观。", "南北政权在制度、服饰与工艺上相互影响，各具风华。", "礼俗更迭与民族交流，为隋唐统一积蓄文化力量。"]],
+      ["隋", "581年-618年", "运河贯通，制度归一", ["隋代重新整合南北，制度建设承上启下。", "大运河连接江河与都城，推动经济文化往来。", "白瓷、陶俑和石刻展现统一王朝的新气象。"]],
+      ["唐", "618年-907年", "盛唐万象，兼容并蓄", ["长安汇聚四方风物，开放胸襟塑造盛唐气度。", "金银器、三彩、壁画与丝路遗珍交相辉映。", "礼乐、宗教与市井生活并盛，呈现华美恢宏的时代风貌。"]],
+      ["五代十国", "907年-960年", "山河分治，艺脉不绝", ["政权更迭频仍，地方割据中仍延续唐宋之间的艺脉。", "瓷业、绘画和墓葬艺术持续发展，区域风格更加鲜明。", "器物中的细节，记录山河分治下的文化韧性。"]],
+      ["宋", "960年-1279年", "文治风雅，器韵天成", ["宋代文治兴盛，城市商业与士人生活交相辉映。", "瓷器审美臻于高峰，汝、官、哥、定、钧各具清雅。", "书画、印刷与日用器物共同呈现含蓄雅正的精神。"]],
+      ["辽夏金", "907年-1234年", "多元并立，北方雄风", ["契丹、西夏、女真等政权并立，北方文化气象雄阔。", "金银器、壁画、文字遗存与马具器物展现民族特色。", "多民族交流互鉴，扩展中华文明的边疆维度。"]],
+      ["元", "1271年-1368年", "四海会通，青花远航", ["元代欧亚交流扩大，草原传统与中原制度相互会通。", "青花瓷走向成熟并远销海外，成为海上贸易的重要象征。", "戏曲、绘画与工艺融汇，形成开放多元的时代面貌。"]],
+      ["明", "1368年-1644年", "典章宏备，工艺精严", ["明代典章制度宏备，宫廷与民间工艺并盛。", "青花、斗彩、家具、书画和建筑制度展现高度秩序。", "精严工艺与文人审美相互滋养，形成端雅典丽的风格。"]],
+      ["清", "1644年-1911年", "承古开新，百工竞丽", ["清代宫廷艺术繁盛，多民族文化融合持续深入。", "珐琅彩、玉器、钟表与陈设器物呈现精巧百工。", "承古而开新，绚丽工艺映照宏阔复杂的历史图景。"]],
+      ["中华民国", "1912年-1949年", "新旧交汇，风尚更新", ["传统工艺与现代工业、教育、展陈制度相遇。", "城市文化、收藏体系与博物馆实践进入新的转型阶段。", "器物风格新旧并存，记录近现代社会的变革。"]],
+      ["中华人民共和国", "1949年至今", "赓续文脉，守护传承", ["考古发现、博物馆建设与文物保护体系持续推进。", "数字化展示与知识库建设，让文明遗产进入新的传播场景。", "中华文明在当代知识体系中赓续文脉、焕发生命力。"]]
+    ].map(([name, time, headline, descriptionLines], index) => ({
+      name,
+      time,
+      headline,
+      descriptionLines,
+      description: descriptionLines.slice(0, 2).join(""),
+      relics: makeRelics(index)
+    }));
+
+    const stageShell = document.getElementById("stage-shell");
+    const eraTrack = document.getElementById("eraTrack");
+    const activeEra = document.getElementById("activeEra");
+    const timelineViewport = document.getElementById("timelineViewport");
+    const badgeName = document.getElementById("badgeName");
+    const badgeTime = document.getElementById("badgeTime");
+    const periodTitleWrap = document.getElementById("periodTitleWrap");
+    const periodTitleCutout = document.getElementById("periodTitleCutout");
+    const periodName = document.getElementById("periodName");
+    const periodTime = document.getElementById("periodTime");
+    const periodHeadline = document.getElementById("periodHeadline");
+    const periodDesc = document.getElementById("periodDesc");
+    const relicBoard = document.querySelector(".relic-board");
+    const relicStrip = document.getElementById("relicStrip");
+    const pager = document.getElementById("pager");
+    const detailButton = document.getElementById("detailButton");
+
+    init();
+
+    function makeRelics(eraIndex) {
+      const list = [];
+      const shuffledRelics = shuffleRelicsForEra(eraIndex);
+      for (let i = 0; i < TARGET_RELIC_COUNT; i += 1) {
+        const base = shuffledRelics[i % shuffledRelics.length];
+        const source = eraSeed[(eraIndex + i) % eraSeed.length];
+        list.push({
+          name: base.name || source[0],
+          category: base.category || source[1],
+          level: base.level || source[2],
+          image: base.image
+        });
+      }
+      return list;
+    }
+
+    function shuffleRelicsForEra(eraIndex) {
+      const relics = baseRelics.map((item) => ({ ...item }));
+      let seed = (eraIndex + 3) * 2654435761;
+      for (let i = relics.length - 1; i > 0; i -= 1) {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const swapIndex = seed % (i + 1);
+        [relics[i], relics[swapIndex]] = [relics[swapIndex], relics[i]];
+      }
+      return relics;
+    }
+
+    function init() {
+      layoutScale();
+      window.addEventListener("resize", layoutScale);
+      renderTimeline();
+      clampOffset();
+      applyOffset(false);
+      selectEra(DEFAULT_INDEX, false);
+      bindDrag();
+      bindWheel();
+      bindRelicDrag();
+      bindButton();
+    }
+
+    function layoutScale() {
+      const scale = Math.max(window.innerWidth / 3840, window.innerHeight / 2161);
+      stageScale = scale;
+      stageShell.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+
+    function renderTimeline() {
+      eraTrack.style.width = `${eras.length * ITEM_W}px`;
+      eras.forEach((era, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "era-item";
+        button.classList.toggle("long-name", era.name.length >= 4);
+        button.classList.toggle("extra-long-name", era.name.length >= 6);
+        button.dataset.index = index;
+        button.style.left = `${index * ITEM_W}px`;
+        button.innerHTML = `
+          <span class="name">${era.name}</span>
+          <span class="time">${era.time}</span>
+          <span class="dot"></span>
+        `;
+        button.addEventListener("click", (event) => {
+          if (suppressClick) {
+            event.preventDefault();
+            return;
+          }
+          chooseEra(index, true);
+        });
+        eraTrack.appendChild(button);
+      });
+    }
+
+    function selectEra(index, animate = true) {
+      stopMomentum();
+      activeIndex = Math.max(0, Math.min(index, eras.length - 1));
+      currentPage = 0;
+      pageDirection = 1;
+      updateActiveContent();
+      ensureEraVisible();
+      applyOffset(animate);
+      renderRelics();
+      updateEraState();
+    }
+
+    function chooseEra(index, animate = true) {
+      selectEra(index, animate);
+      suppressClick = true;
+      window.setTimeout(() => {
+        suppressClick = false;
+      }, 120);
+    }
+
+    function updateActiveContent() {
+      const era = eras[activeIndex];
+      activeEra.classList.toggle("long-name", era.name.length >= 4);
+      activeEra.classList.toggle("extra-long-name", era.name.length >= 6);
+      badgeName.innerHTML = splitBadgeName(era.name);
+      badgeTime.innerHTML = splitTimeForBadge(era.time);
+      const useTitleCutout = false;
+      periodTitleWrap.classList.toggle("uses-cutout", useTitleCutout);
+      periodTitleCutout.alt = useTitleCutout ? `${era.name} ${era.time}` : "";
+      periodName.textContent = era.name;
+      const titleMetrics = getPeriodTitleMetrics(era.name);
+      periodName.style.setProperty("--period-title-size", `${titleMetrics.size}px`);
+      periodTime.textContent = formatPeriodTime(era.time);
+      periodHeadline.textContent = era.headline;
+      periodDesc.innerHTML = era.descriptionLines.slice(0, 2).map(escapeHtml).join("<br>");
+    }
+
+    function splitBadgeName(name) {
+      const explicitBreaks = {
+        "旧石器时代": "旧石器<br>时代",
+        "新石器时代": "新石器<br>时代",
+        "中华人民共和国": "中华人民<br>共和国"
+      };
+      if (explicitBreaks[name]) return explicitBreaks[name];
+      if (name.length >= 6) {
+        return `${name.slice(0, 2)}<br>${name.slice(2)}`;
+      }
+      if (name.length >= 4) {
+        return `${name.slice(0, 2)}<br>${name.slice(2)}`;
+      }
+      return name;
+    }
+
+    function updateEraState() {
+      document.querySelectorAll(".era-item").forEach((item, itemIndex) => {
+        item.classList.toggle("is-active", itemIndex === activeIndex);
+      });
+    }
+
+    function getPeriodTitleMetrics(name) {
+      if (name.length >= 6) return { size: 82 };
+      if (name.length >= 4) return { size: 96 };
+      return { size: 112 };
+    }
+
+    function formatPeriodTime(time) {
+      return time.replace(/-/g, "—");
+    }
+
+    function splitTimeForBadge(time) {
+      if (time.includes("-")) {
+        return time.replace("-", "-<br>");
+      }
+      if (time.length > 8) {
+        return `${time.slice(0, 5)}<br>${time.slice(5)}`;
+      }
+      return time;
+    }
+
+    function ensureEraVisible() {
+      const center = getEraNodeLocalCenter(activeIndex) + offset;
+      if (center < 470) {
+        offset += 470 - center;
+      } else if (center > VIEWPORT_W - 460) {
+        offset -= center - (VIEWPORT_W - 460);
+      }
+      clampOffset();
+    }
+
+    function clampOffset() {
+      const minOffset = VIEWPORT_W - eras.length * ITEM_W - 10;
+      offset = Math.min(0, Math.max(minOffset, offset));
+    }
+
+    function getClampedOffset(value) {
+      const minOffset = VIEWPORT_W - eras.length * ITEM_W - 10;
+      return Math.min(0, Math.max(minOffset, value));
+    }
+
+    function applyOffset(animate) {
+      eraTrack.classList.toggle("dragging", !animate || isDragging);
+      activeEra.classList.toggle("dragging", !animate || isDragging);
+      eraTrack.style.transform = `translateX(${offset}px)`;
+      const badgeX = getBadgeX(activeIndex);
+      activeEra.style.transform = `translateX(${badgeX}px)`;
+      activeEra.style.opacity = getBadgeOpacity(activeIndex).toFixed(3);
+    }
+
+    function getEraNodeLocalCenter(index) {
+      const node = eraTrack.querySelector(`.era-item[data-index="${index}"]`);
+      if (!node) return index * ITEM_W + ITEM_W / 2;
+      return node.offsetLeft + node.offsetWidth / 2;
+    }
+
+    function getEraNodeCenterInScroll(index) {
+      return offset + getEraNodeLocalCenter(index);
+    }
+
+    function getBadgeX(index) {
+      return getEraNodeCenterInScroll(index) - BADGE_W / 2;
+    }
+
+    function getBadgeOpacity(index) {
+      const center = getEraNodeCenterInScroll(index);
+      const leftVisible = EDGE_FADE_INSET;
+      const leftHidden = EDGE_FADE_INSET - BADGE_FADE_ZONE;
+      const rightVisible = VIEWPORT_W - EDGE_FADE_INSET;
+      const rightHidden = VIEWPORT_W - EDGE_FADE_INSET + BADGE_FADE_ZONE;
+      if (center <= leftHidden || center >= rightHidden) return 0;
+      if (center < leftVisible) {
+        return clampValue((center - leftHidden) / BADGE_FADE_ZONE, 0, 1);
+      }
+      if (center > rightVisible) {
+        return clampValue((rightHidden - center) / BADGE_FADE_ZONE, 0, 1);
+      }
+      return 1;
+    }
+
+    function clampValue(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function bindDrag() {
+      timelineViewport.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        stopMomentum();
+        const eraItem = event.target.closest?.(".era-item");
+        pointerDownEraIndex = eraItem ? Number(eraItem.dataset.index) : null;
+        isDragging = true;
+        hasDragged = false;
+        dragStartX = event.clientX;
+        dragStartOffset = offset;
+        dragLastX = event.clientX / stageScale;
+        dragLastTime = performance.now();
+        dragVelocity = 0;
+        eraTrack.classList.add("dragging");
+        activeEra.classList.add("dragging");
+        timelineViewport.setPointerCapture?.(event.pointerId);
+      });
+
+      timelineViewport.addEventListener("pointermove", (event) => {
+        if (!isDragging) return;
+        const delta = (event.clientX - dragStartX) / stageScale;
+        if (!hasDragged && Math.abs(delta) < DRAG_THRESHOLD) return;
+        hasDragged = true;
+        const now = performance.now();
+        const currentX = event.clientX / stageScale;
+        const elapsed = Math.max(16, now - dragLastTime);
+        dragVelocity = (currentX - dragLastX) / elapsed;
+        dragLastX = currentX;
+        dragLastTime = now;
+        offset = dragStartOffset + delta;
+        clampOffset();
+        applyOffset(false);
+      });
+
+      timelineViewport.addEventListener("pointerup", endDrag);
+      timelineViewport.addEventListener("pointercancel", endDrag);
+    }
+
+    function endDrag() {
+      if (!isDragging) return;
+      isDragging = false;
+      eraTrack.classList.remove("dragging");
+      activeEra.classList.remove("dragging");
+      if (hasDragged) {
+        suppressClick = true;
+        window.setTimeout(() => {
+          suppressClick = false;
+        }, 80);
+        startMomentum(dragVelocity);
+      } else if (pointerDownEraIndex !== null) {
+        chooseEra(pointerDownEraIndex, true);
+      }
+      pointerDownEraIndex = null;
+      if (!hasDragged) {
+        applyOffset(true);
+      }
+    }
+
+    function startMomentum(initialVelocity) {
+      stopMomentum();
+      let velocity = initialVelocity;
+      let lastTime = performance.now();
+      const step = (now) => {
+        const elapsed = Math.min(32, now - lastTime);
+        lastTime = now;
+        if (Math.abs(velocity) < 0.018) {
+          applyOffset(true);
+          momentumFrame = 0;
+          return;
+        }
+        const nextOffset = getClampedOffset(offset + velocity * elapsed);
+        const hitBoundary = nextOffset === offset && (nextOffset === 0 || nextOffset === getClampedOffset(-Infinity));
+        offset = nextOffset;
+        applyOffset(false);
+        if (hitBoundary) {
+          applyOffset(true);
+          momentumFrame = 0;
+          return;
+        }
+        velocity *= Math.pow(0.92, elapsed / 16);
+        momentumFrame = window.requestAnimationFrame(step);
+      };
+      momentumFrame = window.requestAnimationFrame(step);
+    }
+
+    function stopMomentum() {
+      if (momentumFrame) {
+        window.cancelAnimationFrame(momentumFrame);
+        momentumFrame = 0;
+      }
+    }
+
+    function bindWheel() {
+      timelineViewport.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        stopMomentum();
+        const rawDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+        const modeScale = event.deltaMode === 1 ? 28 : event.deltaMode === 2 ? VIEWPORT_W : 1;
+        offset -= (rawDelta * modeScale) / stageScale;
+        clampOffset();
+        applyOffset(true);
+      }, { passive: false });
+    }
+
+    function bindButton() {
+      detailButton.addEventListener("click", () => {
+        detailButton.classList.remove("clicked");
+        void detailButton.offsetWidth;
+        detailButton.classList.add("clicked");
+        window.setTimeout(() => detailButton.classList.remove("clicked"), 620);
+      });
+    }
+
+    function bindRelicDrag() {
+      relicBoard.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        relicPointerDown = true;
+        relicHasDragged = false;
+        relicStartX = event.clientX;
+        relicLastX = event.clientX / stageScale;
+        relicLastTime = performance.now();
+        relicVelocity = 0;
+        relicDragDelta = 0;
+        relicBoard.classList.add("dragging");
+        relicStrip.classList.add("dragging");
+        relicBoard.setPointerCapture?.(event.pointerId);
+      });
+
+      relicBoard.addEventListener("pointermove", (event) => {
+        if (!relicPointerDown) return;
+        const delta = (event.clientX - relicStartX) / stageScale;
+        if (!relicHasDragged && Math.abs(delta) < DRAG_THRESHOLD) return;
+        relicHasDragged = true;
+        const now = performance.now();
+        const currentX = event.clientX / stageScale;
+        const elapsed = Math.max(16, now - relicLastTime);
+        relicVelocity = (currentX - relicLastX) / elapsed;
+        relicLastX = currentX;
+        relicLastTime = now;
+        relicDragDelta = getResistedRelicDelta(delta);
+        applyRelicTrack(false, relicDragDelta);
+        event.preventDefault();
+      });
+
+      relicBoard.addEventListener("pointerup", endRelicDrag);
+      relicBoard.addEventListener("pointercancel", endRelicDrag);
+    }
+
+    function endRelicDrag(event) {
+      if (!relicPointerDown) return;
+      relicPointerDown = false;
+      relicBoard.classList.remove("dragging");
+      relicStrip.classList.remove("dragging");
+      const delta = (event.clientX - relicStartX) / stageScale;
+      if (!relicHasDragged) {
+        applyRelicTrack(true);
+        return;
+      }
+      suppressRelicClick = true;
+      window.setTimeout(() => {
+        suppressRelicClick = false;
+      }, 120);
+      const projected = delta + relicVelocity * 420;
+      const pageCount = getCurrentPageCount();
+      let nextPage = currentPage;
+      if (projected < -120) {
+        nextPage = Math.min(pageCount - 1, currentPage + 1);
+      } else if (projected > 120) {
+        nextPage = Math.max(0, currentPage - 1);
+      }
+      if (nextPage !== currentPage) {
+        goRelicPage(nextPage, nextPage > currentPage ? 1 : -1);
+      } else {
+        applyRelicTrack(true);
+      }
+    }
+
+    function renderRelics() {
+      const era = eras[activeIndex];
+      const pageCount = Math.ceil(era.relics.length / PAGE_SIZE);
+      currentPage = Math.min(currentPage, pageCount - 1);
+      window.clearTimeout(relicRenderTimer);
+      relicDragDelta = 0;
+      relicStrip.classList.add("dragging");
+      relicStrip.innerHTML = era.relics.map((relic, index) => `
+          <button class="relic-card ${getRelicImageClass(relic)}" type="button" data-relic-index="${index}" aria-label="查看${escapeHtml(relic.name)}详情">
+            <div class="image-box">
+              <img src="${relic.image}" alt="${escapeHtml(relic.name)}" draggable="false">
+            </div>
+            <div class="relic-info">
+              <h3 class="relic-name">${escapeHtml(relic.name)}</h3>
+              <div class="relic-type">${escapeHtml(relic.category)}</div>
+              <div class="relic-level">${escapeHtml(relic.level)}</div>
+            </div>
+          </button>
+        `).join("");
+      relicStrip.querySelectorAll(".relic-card").forEach((card) => {
+        card.addEventListener("click", (event) => {
+          if (suppressRelicClick) return;
+          const relic = era.relics[Number(card.dataset.relicIndex)];
+          card.classList.remove("clicked");
+          void card.offsetWidth;
+          card.classList.add("clicked");
+          window.setTimeout(() => card.classList.remove("clicked"), 680);
+          openRelic(relic);
+        });
+      });
+      renderPager(pageCount);
+      applyRelicTrack(false);
+      window.requestAnimationFrame(() => {
+        if (!relicPointerDown) relicStrip.classList.remove("dragging");
+      });
+    }
+
+    function renderPager(pageCount) {
+      const dots = Array.from({ length: pageCount }, (_, index) => (
+        `<button class="page-dot${index === currentPage ? " active" : ""}" type="button" data-page="${index}" aria-label="第${index + 1}页"></button>`
+      )).join("");
+      pager.innerHTML = `<span class="pager-medal" aria-hidden="true"></span><div class="pager-dots">${dots}</div>`;
+      pager.querySelectorAll(".page-dot").forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const nextPage = Number(dot.dataset.page);
+          goRelicPage(nextPage, nextPage > currentPage ? 1 : -1);
+        });
+      });
+    }
+
+    function goRelicPage(nextPage, direction) {
+      const pageCount = getCurrentPageCount();
+      const clampedPage = clampValue(nextPage, 0, pageCount - 1);
+      if (clampedPage === currentPage) {
+        applyRelicTrack(true);
+        return;
+      }
+      currentPage = clampedPage;
+      pageDirection = direction || 1;
+      renderPager(pageCount);
+      applyRelicTrack(true);
+    }
+
+    function getCurrentPageCount() {
+      return Math.ceil(eras[activeIndex].relics.length / PAGE_SIZE);
+    }
+
+    function applyRelicTrack(animate = true, dragDelta = 0) {
+      relicStrip.classList.toggle("dragging", !animate);
+      const trackX = -currentPage * RELIC_PAGE_STEP + dragDelta;
+      relicStrip.style.transform = `translateX(${trackX}px)`;
+    }
+
+    function getResistedRelicDelta(delta) {
+      const pageCount = getCurrentPageCount();
+      const atStart = currentPage === 0 && delta > 0;
+      const atEnd = currentPage === pageCount - 1 && delta < 0;
+      return (atStart || atEnd) ? delta * .38 : delta;
+    }
+
+    function openRelic(relic) {
+      console.info("打开文物详情占位：", relic);
+    }
+
+    function getRelicImageClass(relic) {
+      const demoFit = {
+        "乳钉纹铜爵": "fit-demo-relic fit-bronze-jue",
+        "玉斧": "fit-demo-relic fit-jade-yue",
+        "灰陶砂罐": "fit-demo-relic fit-pottery-jar"
+      };
+      return demoFit[relic.name] || "";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+  </script>
+</body>
+</html>
